@@ -26,6 +26,13 @@ trait NodeTrait
     protected $moved = false;
 
     /**
+     * Use a different key than the primary
+     * 
+     * @var string
+     */
+    protected $nodeKeyName;
+
+    /**
      * @var \Carbon\Carbon
      */
     public static $deletedAt;
@@ -36,6 +43,22 @@ trait NodeTrait
      * @var int
      */
     public static $actionsPerformed = 0;
+
+    public function getNSMKey() 
+    {
+        if($this->nodeKeyName) {
+            return $this->{$this->nodeKeyName};
+        }
+        return $this->getKey();
+    }
+
+    public function getNSMKeyName() 
+    {
+        if($this->nodeKeyName) {
+            return $this->nodeKeyName;
+        }
+        return $this->getKeyName();
+    }
 
     /**
      * Sign on model events.
@@ -185,7 +208,7 @@ trait NodeTrait
      */
     protected function setParent($value)
     {
-        $this->setParentId($value ? $value->getKey() : null)
+        $this->setParentId($value ? $value->getNSMKey() : null)
             ->setRelation('parent', $value);
 
         return $this;
@@ -213,7 +236,7 @@ trait NodeTrait
     {
         if ( ! $this->exists || static::$actionsPerformed === 0) return;
 
-        $attributes = $this->newNestedSetQuery()->getNodeData($this->getKey());
+        $attributes = $this->newNestedSetQuery()->getNodeData($this->getNSMKey());
 
         $this->attributes = array_merge($this->attributes, $attributes);
 //        $this->original = array_merge($this->original, $attributes);
@@ -259,7 +282,7 @@ trait NodeTrait
     public function siblings()
     {
         return $this->newScopedQuery()
-            ->where($this->getKeyName(), '<>', $this->getKey())
+            ->where($this->getNSMKeyName(), '<>', $this->getNSMKey())
             ->where($this->getParentIdName(), '=', $this->getParentId());
     }
 
@@ -587,7 +610,7 @@ trait NodeTrait
     protected function moveNode($position)
     {
         $updated = $this->newNestedSetQuery()
-                ->moveNode($this->getKey(), $position) > 0;
+                ->moveNode($this->getNSMKey(), $position) > 0;
 
         if ($updated) $this->refreshNode();
 
@@ -1029,7 +1052,7 @@ trait NodeTrait
      */
     public function isChildOf(self $other)
     {
-        return $this->getParentId() == $other->getKey();
+        return $this->getParentId() == $other->getNSMKey();
     }
 
     /**
