@@ -26,13 +26,6 @@ trait NodeTrait
     protected $moved = false;
 
     /**
-     * Use a different key than the primary
-     * 
-     * @var string
-     */
-    protected $nodeKeyName;
-
-    /**
      * @var \Carbon\Carbon
      */
     public static $deletedAt;
@@ -44,17 +37,27 @@ trait NodeTrait
      */
     public static $actionsPerformed = 0;
 
+    /**
+     * Get Nested Set Model Key  or derault PK key value
+     * 
+     * @return int
+     */
     public function getNSMKey() 
     {
-        if($this->nodeKeyName) {
+        if(isset($this->nodeKeyName)) {
             return $this->{$this->nodeKeyName};
         }
         return $this->getKey();
     }
 
+    /**
+     * Get Nested Set Model Key or derault PK key name
+     * 
+     * @return string
+     */
     public function getNSMKeyName() 
     {
-        if($this->nodeKeyName) {
+        if(isset($this->nodeKeyName)) {
             return $this->nodeKeyName;
         }
         return $this->getKeyName();
@@ -86,6 +89,24 @@ trait NodeTrait
             static::restored(function ($model) {
                 $model->restoreDescendants(static::$deletedAt);
             });
+        }
+
+        static::creating(function ($model) {
+            $model->setNextNSMKey();
+        });
+    }
+
+    /**
+     * Set next Nested Set Model id
+     */
+    public function setNextNSMKey()
+    {
+        if(isset($this->nodeKeyName)) {
+            if($latestNodeId = $this->max($this->getNSMKeyName())) {
+                $this->{$this->getNSMKeyName()} = $latestNodeId + 1;
+            } else {
+                $this->{$this->getNSMKeyName()} = 1;
+            }
         }
     }
 

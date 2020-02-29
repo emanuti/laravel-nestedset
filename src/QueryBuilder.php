@@ -33,7 +33,7 @@ class QueryBuilder extends Builder
     {
         $query = $this->toBase();
 
-        $query->where($this->model->getKeyName(), '=', $id);
+        $query->where($this->model->getNSMKeyName(), '=', $id);
 
         $data = $query->first([ $this->model->getLftName(),
                                 $this->model->getRgtName() ]);
@@ -86,21 +86,21 @@ class QueryBuilder extends Builder
      */
     public function whereAncestorOf($id, $andSelf = false, $boolean = 'and')
     {
-        $keyName = $this->model->getTable() . '.' . $this->model->getKeyName();
+        $keyName = $this->model->getTable() . '.' . $this->model->getNSMKeyName();
 
         if (NestedSet::isNode($id)) {
             $value = '?';
 
             $this->query->addBinding($id->getRgt());
 
-            $id = $id->getKey();
+            $id = $id->getNSMKey();
         } else {
             $valueQuery = $this->model
                 ->newQuery()
                 ->toBase()
                 ->select("_.".$this->model->getRgtName())
                 ->from($this->model->getTable().' as _')
-                ->where($this->model->getKeyName(), '=', $id)
+                ->where($this->model->getNSMKeyName(), '=', $id)
                 ->limit(1);
 
             $this->query->mergeBindings($valueQuery);
@@ -326,7 +326,7 @@ class QueryBuilder extends Builder
                 ->toBase()
                 ->select('_n.'.$this->model->getLftName())
                 ->from($this->model->getTable().' as _n')
-                ->where('_n.'.$this->model->getKeyName(), '=', $id);
+                ->where('_n.'.$this->model->getNSMKeyName(), '=', $id);
 
             $this->query->mergeBindings($valueQuery);
 
@@ -458,7 +458,7 @@ class QueryBuilder extends Builder
      */
     protected function wrappedKey()
     {
-        return $this->query->getGrammar()->wrap($this->model->getKeyName());
+        return $this->query->getGrammar()->wrap($this->model->getNSMKeyName());
     }
 
     /**
@@ -850,7 +850,7 @@ class QueryBuilder extends Builder
     public function fixTree($root = null)
     {
         $columns = [
-            $this->model->getKeyName(),
+            $this->model->getNSMKeyName(),
             $this->model->getParentIdName(),
             $this->model->getLftName(),
             $this->model->getRgtName(),
@@ -887,7 +887,7 @@ class QueryBuilder extends Builder
      */
     protected function fixNodes(array &$dictionary, $parent = null)
     {
-        $parentId = $parent ? $parent->getKey() : null;
+        $parentId = $parent ? $parent->getNSMKey() : null;
         $cut = $parent ? $parent->getLft() + 1 : 1;
 
         $updated = [];
@@ -937,7 +937,7 @@ class QueryBuilder extends Builder
         foreach ($dictionary[$parentId] as $model) {
             $lft = $cut;
 
-            $cut = self::reorderNodes($dictionary, $updated, $model->getKey(), $cut + 1);
+            $cut = self::reorderNodes($dictionary, $updated, $model->getNSMKey(), $cut + 1);
 
             if ($model->rawNode($lft, $cut, $parentId)->isDirty()) {
                 $updated[] = $model;
@@ -977,7 +977,7 @@ class QueryBuilder extends Builder
             ->getDictionary();
 
         $dictionary = [];
-        $parentId = $root ? $root->getKey() : null;
+        $parentId = $root ? $root->getNSMKey() : null;
 
         $this->buildRebuildDictionary($dictionary, $data, $existing, $parentId);
 
@@ -986,7 +986,7 @@ class QueryBuilder extends Builder
             if ($delete && ! $this->model->usesSoftDelete()) {
                 $this->model
                     ->newScopedQuery()
-                    ->whereIn($this->model->getKeyName(), array_keys($existing))
+                    ->whereIn($this->model->getNSMKeyName(), array_keys($existing))
                     ->delete();
             } else {
                 foreach ($existing as $model) {
@@ -1029,7 +1029,7 @@ class QueryBuilder extends Builder
                                               array &$existing,
                                                     $parentId = null
     ) {
-        $keyName = $this->model->getKeyName();
+        $keyName = $this->model->getNSMKeyName();
 
         foreach ($data as $itemData) {
             /** @var NodeTrait|Model $model */
@@ -1061,7 +1061,7 @@ class QueryBuilder extends Builder
             $this->buildRebuildDictionary($dictionary,
                                           $itemData['children'],
                                           $existing,
-                                          $model->getKey());
+                                          $model->getNSMKey());
         }
     }
 
