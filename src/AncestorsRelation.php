@@ -50,7 +50,7 @@ class AncestorsRelation extends BaseRelation
      */
     protected function relationExistenceCondition($hash, $table, $lft, $rgt)
     {
-        $key = $this->getBaseQuery()->getGrammar()->wrap($this->parent->getKeyName());
+        $key = $this->getBaseQuery()->getGrammar()->wrap($this->parent->getNSMKeyName());
 
         return "{$table}.{$rgt} between {$hash}.{$lft} and {$hash}.{$rgt} and $table.$key <> $hash.$key";
     }

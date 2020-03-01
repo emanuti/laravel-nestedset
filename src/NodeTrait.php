@@ -270,7 +270,7 @@ trait NodeTrait
      */
     public function parent()
     {
-        return $this->belongsTo(get_class($this), $this->getParentIdName())
+        return $this->belongsTo(get_class($this), $this->getParentIdName(), $this->getNSMKeyName())
             ->setModel($this);
     }
 
@@ -281,7 +281,7 @@ trait NodeTrait
      */
     public function children()
     {
-        return $this->hasMany(get_class($this), $this->getParentIdName())
+        return $this->hasMany(get_class($this), $this->getParentIdName(), $this->getNSMKeyName())
             ->setModel($this);
     }
 

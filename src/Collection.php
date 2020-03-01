@@ -26,7 +26,7 @@ class Collection extends BaseCollection
                 $node->setRelation('parent', null);
             }
 
-            $children = $groupedNodes->get($node->getKey(), [ ]);
+            $children = $groupedNodes->get($node->getNSMKey(), [ ]);
 
             /** @var Model|NodeTrait $child */
             foreach ($children as $child) {
@@ -80,7 +80,7 @@ class Collection extends BaseCollection
     protected function getRootNodeId($root = false)
     {
         if (NestedSet::isNode($root)) {
-            return $root->getKey();
+            return $root->getNSMKey();
         }
 
         if ($root !== false) {
@@ -134,7 +134,7 @@ class Collection extends BaseCollection
         foreach ($groupedNodes->get($parentId, []) as $node) {
             $this->push($node);
 
-            $this->flattenTree($groupedNodes, $node->getKey());
+            $this->flattenTree($groupedNodes, $node->getNSMKey());
         }
 
         return $this;
